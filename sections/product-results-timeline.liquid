@@ -1,0 +1,339 @@
+{{ 'section-product-results-timeline.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-product-results-timeline.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign section_id = 'ProductResultsTimeline-' | append: section.id
+  assign product_count = section.blocks.size
+  assign intro_alignment = section.settings.intro_alignment | default: 'center'
+  assign card_variant = section.settings.card_style | default: 'soft'
+-%}
+
+<section
+  id="{{ section_id }}"
+  class="product-results-timeline color-{{ section.settings.color_scheme }} card-style-{{ card_variant }} intro-align-{{ intro_alignment }}"
+  style="--section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px;"
+  data-product-results-timeline
+>
+  <div class="product-results-timeline__container page-width">
+    {%- if section.settings.eyebrow != blank or section.settings.heading != blank or section.settings.description != blank -%}
+      <div class="product-results-timeline__intro rte">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="product-results-timeline__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="product-results-timeline__heading inline-richtext {{ section.settings.heading_size }}">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+          <div class="product-results-timeline__description body-medium">{{ section.settings.description }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if product_count > 0 -%}
+      <div
+        class="product-results-timeline__tabs"
+        role="tablist"
+        aria-label="{{ section.settings.heading | default: 'Product results timeline' | escape }}"
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign is_active = false
+            if forloop.first
+              assign is_active = true
+            endif
+            assign accent_color = block.settings.accent_color | default: '#b8865b'
+          -%}
+          <button
+            id="{{ section_id }}-tab-{{ block.id }}"
+            class="product-results-timeline__tab"
+            type="button"
+            role="tab"
+            aria-selected="{% if is_active %}true{% else %}false{% endif %}"
+            aria-controls="{{ section_id }}-panel-{{ block.id }}"
+            tabindex="{% if is_active %}0{% else %}-1{% endif %}"
+            data-tab-trigger
+            data-target="{{ section_id }}-panel-{{ block.id }}"
+            style="--product-accent: {{ accent_color }};"
+            {{ block.shopify_attributes }}
+          >
+            {%- if section.settings.show_product_images and block.settings.product_image != blank -%}
+              <span class="product-results-timeline__tab-media">
+                {{ block.settings.product_image | image_url: width: 120 | image_tag: loading: 'lazy', widths: '60, 90, 120', sizes: '(min-width: 750px) 60px, 52px', alt: block.settings.product_title }}
+              </span>
+            {%- endif -%}
+            <span class="product-results-timeline__tab-copy">
+              <span class="product-results-timeline__tab-title">{{ block.settings.product_title | escape }}</span>
+              {%- if block.settings.product_subtitle != blank -%}
+                <span class="product-results-timeline__tab-subtitle">{{ block.settings.product_subtitle | escape }}</span>
+              {%- endif -%}
+            </span>
+          </button>
+        {%- endfor -%}
+      </div>
+
+      <div class="product-results-timeline__panels">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign is_active = false
+            if forloop.first
+              assign is_active = true
+            endif
+            assign accent_color = block.settings.accent_color | default: '#b8865b'
+          -%}
+          <div
+            id="{{ section_id }}-panel-{{ block.id }}"
+            class="product-results-timeline__panel{% if is_active %} is-active{% endif %}"
+            role="tabpanel"
+            aria-labelledby="{{ section_id }}-tab-{{ block.id }}"
+            {% unless is_active %}hidden{% endunless %}
+            tabindex="0"
+            data-tab-panel
+            style="--product-accent: {{ accent_color }};"
+          >
+            <div class="product-results-timeline__timeline">
+              <div class="product-results-timeline__timeline-rail" aria-hidden="true"></div>
+              {%- assign milestone_labels = 'Day 1|Day 7|Day 30|Day 90' | split: '|' -%}
+              {%- assign milestone_titles = block.settings.day_1_title | append: '||' | append: block.settings.day_7_title | append: '||' | append: block.settings.day_30_title | append: '||' | append: block.settings.day_90_title | split: '||' -%}
+              {%- assign milestone_bodies = block.settings.day_1_body | append: '||' | append: block.settings.day_7_body | append: '||' | append: block.settings.day_30_body | append: '||' | append: block.settings.day_90_body | split: '||' -%}
+              {%- for label in milestone_labels -%}
+                <article class="product-results-timeline__card">
+                  <span class="product-results-timeline__step">{{ label }}</span>
+                  {%- if milestone_titles[forloop.index0] != blank -%}
+                    <h3 class="product-results-timeline__card-title">{{ milestone_titles[forloop.index0] | escape }}</h3>
+                  {%- endif -%}
+                  {%- if milestone_bodies[forloop.index0] != blank -%}
+                    <div class="product-results-timeline__card-body rte">{{ milestone_bodies[forloop.index0] }}</div>
+                  {%- endif -%}
+                </article>
+              {%- endfor -%}
+            </div>
+
+            {%- if section.settings.show_cta or section.settings.disclaimer_text != blank or block.settings.product_url != blank -%}
+              <div class="product-results-timeline__footer">
+                {%- if section.settings.show_cta and section.settings.cta_label != blank and block.settings.product_url != blank -%}
+                  <a class="product-results-timeline__cta button" href="{{ block.settings.product_url }}">
+                    {{ section.settings.cta_label | escape }}
+                  </a>
+                {%- endif -%}
+                {%- if section.settings.disclaimer_text != blank -%}
+                  <div class="product-results-timeline__disclaimer rte">{{ section.settings.disclaimer_text }}</div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="product-results-timeline__empty">
+        <p>Add up to five product timeline blocks to populate this section.</p>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product results timeline",
+  "tag": "section",
+  "class": "section section-product-results-timeline",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Results timeline"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "See how each ritual unfolds over time"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "default": "h2",
+      "options": [
+        { "value": "h1", "label": "Large" },
+        { "value": "h2", "label": "Medium" },
+        { "value": "h3", "label": "Small" }
+      ]
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Guide shoppers through the Day 1, Day 7, Day 30, and Day 90 milestones for each supplement with calm, editorial storytelling.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_images",
+      "label": "Show product images in tabs",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show CTA button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Shop this ritual"
+    },
+    {
+      "type": "richtext",
+      "id": "disclaimer_text",
+      "label": "Disclaimer text",
+      "default": "<p>Results vary by individual. Use consistently as directed.</p>"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "intro_alignment",
+      "label": "Intro alignment",
+      "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card style",
+      "default": "soft",
+      "options": [
+        { "value": "soft", "label": "Soft luxury" },
+        { "value": "outline", "label": "Minimal outline" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top spacing",
+      "min": 40,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 88
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom spacing",
+      "min": 40,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 88
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_timeline",
+      "name": "Product timeline",
+      "limit": 5,
+      "settings": [
+        {
+          "type": "text",
+          "id": "product_title",
+          "label": "Product title",
+          "default": "DailyGlow"
+        },
+        {
+          "type": "text",
+          "id": "product_subtitle",
+          "label": "Product subtitle",
+          "default": "Daily radiance support"
+        },
+        {
+          "type": "url",
+          "id": "product_url",
+          "label": "Product link"
+        },
+        {
+          "type": "image_picker",
+          "id": "product_image",
+          "label": "Product image"
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Accent color",
+          "default": "#b8865b"
+        },
+        {
+          "type": "text",
+          "id": "day_1_title",
+          "label": "Day 1 title",
+          "default": "A grounded start"
+        },
+        {
+          "type": "richtext",
+          "id": "day_1_body",
+          "label": "Day 1 body",
+          "default": "<p>Introduce the ritual with immediate feelings, first impressions, or how to use it.</p>"
+        },
+        {
+          "type": "text",
+          "id": "day_7_title",
+          "label": "Day 7 title",
+          "default": "Settling into the rhythm"
+        },
+        {
+          "type": "richtext",
+          "id": "day_7_body",
+          "label": "Day 7 body",
+          "default": "<p>Highlight early consistency markers, routines, and small observable moments.</p>"
+        },
+        {
+          "type": "text",
+          "id": "day_30_title",
+          "label": "Day 30 title",
+          "default": "Noticeable daily benefits"
+        },
+        {
+          "type": "richtext",
+          "id": "day_30_body",
+          "label": "Day 30 body",
+          "default": "<p>Describe the more established benefits shoppers may associate with a month of use.</p>"
+        },
+        {
+          "type": "text",
+          "id": "day_90_title",
+          "label": "Day 90 title",
+          "default": "Long-term ritual payoff"
+        },
+        {
+          "type": "richtext",
+          "id": "day_90_body",
+          "label": "Day 90 body",
+          "default": "<p>Frame the long-view story and reinforce the steady, lifestyle-oriented nature of the ritual.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product results timeline",
+      "blocks": [
+        { "type": "product_timeline" },
+        { "type": "product_timeline" },
+        { "type": "product_timeline" }
+      ]
+    }
+  ]
+}
+{% endschema %}
